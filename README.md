@@ -66,9 +66,9 @@ Returns 403 Forbidden if missing
 
 Effect:
 
-✔ Stops automated API bots
-✔ Does NOT affect real customers
-✔ No CAPTCHA required
+i) Stops automated API bots
+ii)  Does NOT affect real customers
+iii) No CAPTCHA required
 
 **Method 2 — Minimum Order Amount Protection (Simple & Effective)
 What it does:**
