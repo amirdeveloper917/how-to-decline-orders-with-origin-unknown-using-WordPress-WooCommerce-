@@ -2,14 +2,16 @@
 /* 1 way to block origin order in woocommerce */
 
 add_filter( 'rest_pre_dispatch', function( $result, $server, $request ) {
+//Get the current REST API route being accessed
     $route = $request->get_route();
 
-    // Sirf us waqt action lein jab koi checkout karne ki koshish kare
+  // Only apply this protection if someone is trying to access and the WooCommerce Store API checkout endpoints
     if ( strpos( $route, '/wc/store/v1/checkout' ) !== false || strpos( $route, '/wc/store/checkout' ) !== false ) {
         
-        // Bot check: Agar request mein valid security nonce nahi hai
+        // Check if the request includes a valid Store API security nonce
         $nonce = $request->get_header( 'X-WC-Store-API-Nonce' );
-        
+
+         // If no nonce is present and the user is not logged in and block the request and return a 403 Forbidden response
         if ( ! $nonce && ! is_user_logged_in() ) {
             return new WP_Error( 'rest_forbidden', 'Direct API Checkout is disabled for guests.', array( 'status' => 403 ) );
         }
@@ -69,3 +71,4 @@ function check_min_order_amount() {
     }
 }
 /* closed */
+
