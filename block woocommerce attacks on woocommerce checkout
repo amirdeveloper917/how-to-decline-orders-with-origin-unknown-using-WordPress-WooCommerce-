@@ -1,0 +1,71 @@
+
+/* 1 way to block origin order in woocommerce */
+
+add_filter( 'rest_pre_dispatch', function( $result, $server, $request ) {
+    $route = $request->get_route();
+
+    // Sirf us waqt action lein jab koi checkout karne ki koshish kare
+    if ( strpos( $route, '/wc/store/v1/checkout' ) !== false || strpos( $route, '/wc/store/checkout' ) !== false ) {
+        
+        // Bot check: Agar request mein valid security nonce nahi hai
+        $nonce = $request->get_header( 'X-WC-Store-API-Nonce' );
+        
+        if ( ! $nonce && ! is_user_logged_in() ) {
+            return new WP_Error( 'rest_forbidden', 'Direct API Checkout is disabled for guests.', array( 'status' => 403 ) );
+        }
+    }
+
+    return $result;
+}, 10, 3 );
+
+/* closed */
+
+/* 2) way to block order in woocommerce */
+
+add_action( 'woocommerce_checkout_process', 'pp_block_card_testing_orders' );
+
+function pp_block_card_testing_orders() {
+
+    if ( ! WC()->cart ) {
+        return;
+    }
+
+    $min_amount = 5;
+
+    if ( WC()->cart->total < $min_amount ) {
+
+        $origin = 'unknown';
+
+        if ( isset( $_POST['order_attribution'] ) ) {
+            $origin = sanitize_text_field( $_POST['order_attribution'] );
+        }
+
+        if ( strtolower( $origin ) === 'unknown' ) {
+            wc_add_notice(
+                'Minimum order amount is $5.',
+                'error'
+            );
+        }
+    }
+}
+/* closed */
+
+/* 3) way to block origin order if you are using astra theme */
+
+add_action('woocommerce_checkout_process', 'check_min_order_amount');
+
+function check_min_order_amount() {
+    $min_amount = 5;
+
+    if ( WC()->cart->total < $min_amount ) {
+        $origin = isset($_POST['order_attribution']) ? $_POST['order_attribution'] : 'unknown';
+
+        if ( strtolower($origin) === 'unknown' ) {
+            wc_add_notice(
+                sprintf(__('Minimum order amount is $%s.', 'astra-child'), $min_amount),
+                'error'
+            );
+        }
+    }
+}
+/* closed */
